@@ -259,28 +259,36 @@ const singleProduct = async (req, res) => {
 
 
 const searchProducts = async (req, res) => {
-   const { query } = req.query; 
-   
-   if (!query) {
-     return res.status(400).json({ success: false, message: 'Query parameter is required' });
-   }
- 
-   try {
-     const products = await productModel.find({
-       $or: [
-         { title: { $regex: query, $options: 'i' } },
-         { description: { $regex: query, $options: 'i' } },
-       ],
-       availability: 'In Stock', 
-       published: true,
-     });
- 
-     res.status(200).json({ success: true, products });
-   } catch (error) {
-     console.error('Error searching products:', error);
-     res.status(500).json({ success: false, message: 'Internal Server Error' });
-   }
- };
+  const { query, category } = req.query;
+
+  if (!query) {
+    return res.status(400).json({ success: false, message: 'Query parameter is required' });
+  }
+
+  try {
+    const searchFilter = {
+      $or: [
+        { title: { $regex: query, $options: 'i' } },
+        { description: { $regex: query, $options: 'i' } }
+      ],
+      published: true,
+      availability: 'In Stock'
+    };
+
+    // If category is provided and is a valid ObjectId, filter by category
+    if (category && mongoose.Types.ObjectId.isValid(category)) {
+      searchFilter.category = category;
+    }
+
+    const products = await productModel.find(searchFilter)
+      .select('_id title slug price discount brand images variants stock category subCategory availability');
+
+    res.status(200).json({ success: true, products });
+  } catch (error) {
+    console.error('Error searching products:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+};
 
 const products = async (req, res) => {
   try {

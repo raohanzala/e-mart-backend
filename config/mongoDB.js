@@ -28,8 +28,10 @@ const connectDB = async () => {
     }
 
     await mongoose.connect(
-      'mongodb+srv://hanzalar502:Hanzala%4012345@cluster0.itbzgxy.mongodb.net/e-mart?retryWrites=true&w=majority',
+      // 'mongodb+srv://hanzalar502:Hanzala%4012345@cluster0.itbzgxy.mongodb.net/e-mart?retryWrites=true&w=majority',
       // connectionOptions
+      'mongodb://localhost:27017'
+
     )
 
   } catch (error) {

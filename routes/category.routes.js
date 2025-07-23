@@ -1,5 +1,5 @@
 import express from 'express'
-import { addCategory, deleteCategory, editCategory, getCategories, getAllCategories } from '../controllers/category.controller.js';
+import { addCategory, deleteCategory, editCategory, getCategories, getAllCategories, getProductsByCategorySlug } from '../controllers/category.controller.js';
 import adminAuth from '../middleware/adminAuth.js';
 import upload from '../middleware/multer.js';
 
@@ -7,6 +7,8 @@ const categoryRouter = express.Router();
 
 // Get all categories (fast route - no pagination)
 categoryRouter.get("/all", getAllCategories);
+
+categoryRouter.get('/single/:slug', getProductsByCategorySlug)
 
 // Get all categories (with pagination, sorting, search)
 categoryRouter.get("/", getCategories);

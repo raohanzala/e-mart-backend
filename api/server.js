@@ -25,10 +25,10 @@ const server = http.createServer(app);
   try {
     await connectDB();
     console.log('Connected to MongoDB');
-    
+
     // Initialize default categories
     await initializeCategories();
-    
+
     connectCloudinary();
     console.log('Cloudinary configured');
   } catch (error) {
@@ -55,7 +55,7 @@ app.use(express.json());
 app.use('/api/products', productRouter);
 app.use('/api/cart', cartRouter);
 app.use('/api/order', orderRouter);
-app.use('/api/category', categoryRouter);
+app.use('/api/categories', categoryRouter);
 app.use('/api/newsletter', newsletterRouter);
 app.use('/api/settings', settingsRouter);
 app.use('/api/notifications', notificationRouter);

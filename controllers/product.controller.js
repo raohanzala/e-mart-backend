@@ -18,8 +18,11 @@ const addProduct = async (req, res) => {
       category,
       subCategory,
       brand,
-      attributes,
-      variants
+      specifications, // <-- new field
+      variants,
+      availability,
+      isFeatured,
+      published
     } = req.body;
 
     // Validate required fields
@@ -40,10 +43,10 @@ const addProduct = async (req, res) => {
     }
 
     const images = [
-      req.files.image1 && req.files.image1[0],
-      req.files.image2 && req.files.image2[0],
-      req.files.image3 && req.files.image3[0],
-      req.files.image4 && req.files.image4[0],
+      req.files?.image1 && req.files.image1[0],
+      req.files?.image2 && req.files.image2[0],
+      req.files?.image3 && req.files.image3[0],
+      req.files?.image4 && req.files.image4[0],
     ].filter(Boolean);
 
     const processAndUploadImage = async (filePath) => {
@@ -71,11 +74,37 @@ const addProduct = async (req, res) => {
     // Process and upload all images concurrently
     const imagesData = await Promise.all(images.map((img) => processAndUploadImage(img.path)));
 
-    // Parse attributes if they're provided as a string
-    const parsedAttributes = attributes ? (typeof attributes === 'string' ? JSON.parse(attributes) : attributes) : {};
+    // Parse specifications if provided as a string
+    let parsedSpecifications = [];
+    if (specifications) {
+      if (typeof specifications === 'string') {
+        try {
+          parsedSpecifications = JSON.parse(specifications);
+        } catch (e) {
+          return res.status(400).json({ success: false, message: 'Invalid specifications format' });
+        }
+      } else if (Array.isArray(specifications)) {
+        parsedSpecifications = specifications;
+      }
+      // Validate each specification
+      parsedSpecifications = parsedSpecifications.filter(spec => spec.key && spec.value);
+    }
 
     // Parse variants if they're provided as a string
-    const parsedVariants = variants ? (typeof variants === 'string' ? JSON.parse(variants) : variants) : [];
+    let parsedVariants = [];
+    if (variants) {
+      if (typeof variants === 'string') {
+        try {
+          parsedVariants = JSON.parse(variants);
+        } catch (e) {
+          return res.status(400).json({ success: false, message: 'Invalid variants format' });
+        }
+      } else if (Array.isArray(variants)) {
+        parsedVariants = variants;
+      }
+      // Validate each variant (must have at least one of color, size, price, stock, sku)
+      parsedVariants = parsedVariants.filter(variant => variant && (variant.color || variant.size || variant.price || variant.sku));
+    }
 
     // Save product details to the database
     const productData = {
@@ -89,8 +118,11 @@ const addProduct = async (req, res) => {
       subCategory,
       brand: brand || "No Brand",
       images: imagesData,
-      attributes: parsedAttributes,
-      variants: parsedVariants
+      specifications: parsedSpecifications,
+      variants: parsedVariants,
+      ...(availability && { availability }),
+      ...(typeof isFeatured !== 'undefined' && { isFeatured }),
+      ...(typeof published !== 'undefined' && { published })
     };
 
     const product = new productModel(productData);
@@ -116,11 +148,12 @@ const editProduct = async (req, res) => {
       category,
       subCategory,
       brand,
-      attributes,
-      variants
+      specifications, // <-- new field
+      variants,
+      availability,
+      isFeatured,
+      published
     } = req.body;
-
-    console.log(title, slug, description, price, discount, stock, category, subCategory, brand, attributes, variants);
 
     // Check if slug already exists (if slug is being updated)
     if (slug) {
@@ -141,7 +174,6 @@ const editProduct = async (req, res) => {
     ].filter(Boolean);
 
     const processAndUploadImage = async (filePath) => {
-      // Process image without watermark
       const processedBuffer = await sharp(filePath)
         .resize(800)
         .webp({ quality: 80 })
@@ -155,7 +187,7 @@ const editProduct = async (req, res) => {
           }
           resolve({
             url: result.secure_url,
-            alt: title || 'Product Image' // Use product title as alt text
+            alt: title || 'Product Image'
           });
         }).end(processedBuffer);
       });
@@ -166,11 +198,41 @@ const editProduct = async (req, res) => {
       imagesData = await Promise.all(images.map((img) => processAndUploadImage(img.path)));
     }
 
-    // Parse attributes if they're provided
-    const parsedAttributes = attributes ? (typeof attributes === 'string' ? JSON.parse(attributes) : attributes) : undefined;
+    // Parse specifications if provided
+    let parsedSpecifications = undefined;
+    if (typeof specifications !== 'undefined') {
+      if (typeof specifications === 'string') {
+        try {
+          parsedSpecifications = JSON.parse(specifications);
+        } catch (e) {
+          return res.status(400).json({ success: false, message: 'Invalid specifications format' });
+        }
+      } else if (Array.isArray(specifications)) {
+        parsedSpecifications = specifications;
+      }
+      // Validate each specification
+      if (parsedSpecifications) {
+        parsedSpecifications = parsedSpecifications.filter(spec => spec.key && spec.value);
+      }
+    }
 
-    // Parse variants if they're provided
-    const parsedVariants = variants ? (typeof variants === 'string' ? JSON.parse(variants) : variants) : undefined;
+    // Parse variants if provided
+    let parsedVariants = undefined;
+    if (typeof variants !== 'undefined') {
+      if (typeof variants === 'string') {
+        try {
+          parsedVariants = JSON.parse(variants);
+        } catch (e) {
+          return res.status(400).json({ success: false, message: 'Invalid variants format' });
+        }
+      } else if (Array.isArray(variants)) {
+        parsedVariants = variants;
+      }
+      // Validate each variant (must have at least one of color, size, price, stock, sku)
+      if (parsedVariants) {
+        parsedVariants = parsedVariants.filter(variant => variant && (variant.color || variant.size || variant.price || variant.sku));
+      }
+    }
 
     const updatedData = {
       ...(title && { title }),
@@ -182,9 +244,12 @@ const editProduct = async (req, res) => {
       ...(category && { category }),
       ...(subCategory && { subCategory }),
       ...(brand && { brand }),
-      ...(parsedAttributes && { attributes: parsedAttributes }),
-      ...(parsedVariants && { variants: parsedVariants }),
+      ...(typeof parsedSpecifications !== 'undefined' && { specifications: parsedSpecifications }),
+      ...(typeof parsedVariants !== 'undefined' && { variants: parsedVariants }),
       ...(imagesData.length > 0 && { images: imagesData }),
+      ...(availability && { availability }),
+      ...(typeof isFeatured !== 'undefined' && { isFeatured }),
+      ...(typeof published !== 'undefined' && { published })
     };
 
     const product = await productModel.findByIdAndUpdate(productId, updatedData, { new: true });
@@ -558,12 +623,14 @@ const getFeaturedProducts = async (req, res) => {
     const featuredProducts = await productModel
       .find({ 
         published: true,
-        featured: true // Only get featured products
+        isFeatured: true // Only get featured products
       })
       .sort({ date: -1 }) // Sort by date in descending order (newest first)
       .limit(limit)
-      .select('name description newPrice oldPrice images category gender bestSeller isAffiliate profit'); // Select only needed fields
+      .select('name description price slug images category gender bestSeller'); // Select only needed fields
     
+      console.log(featuredProducts)
+
     res.json({ 
       success: true, 
       products: featuredProducts 

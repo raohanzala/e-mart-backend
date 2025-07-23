@@ -37,8 +37,8 @@ productRouter.post("/product/publish-status", updatePublishStatus);
 productRouter.get("/", products);
 productRouter.get("/search", searchProducts);
 productRouter.get("/single/:productSlug", singleProduct);
-productRouter.get("/featured-products", getFeaturedProducts);
+productRouter.get("/featured", getFeaturedProducts);
 productRouter.get("/best-sellers", getBestSellers);
-productRouter.get("/related-products/:productId", getRelatedProducts);
+productRouter.get("/related/:productSlug", getRelatedProducts);
 
 export default productRouter;

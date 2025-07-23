@@ -1,6 +1,8 @@
 import { v2 as cloudinary } from "cloudinary";
 import sharp from "sharp";
 import categoryModel from "../models/category.model.js";
+import productModel from '../models/product.model.js'
+
 
 // Get all categories (fast route - no pagination, sorting, or search)
 const getAllCategories = async (req, res) => {
@@ -286,6 +288,41 @@ const deleteCategory = async (req, res) => {
   }
 };
 
+
+const getProductsByCategorySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    console.log(slug, 'SLUG PATAM')
+
+    // Find the category by slug
+    const category = await categoryModel.findOne({ slug });
+
+    console.log(category)
+
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: "Category not found",
+      });
+    }
+
+    // Get all products with this category's ObjectId
+    const products = await productModel.find({ category: category._id }).lean();
+
+    res.json({
+      success: true,
+      category: category.name,
+      totalProducts: products.length,
+      products,
+    });
+  } catch (error) {
+    console.error("Error in getProductsByCategorySlug:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+
 // Initialize default categories if none exist
 const initializeCategories = async () => {
   try {
@@ -511,4 +548,5 @@ export {
   editCategory,
   getAllCategories,
   initializeCategories,
+  getProductsByCategorySlug
 };

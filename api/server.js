@@ -11,7 +11,7 @@ import settingsRouter from '../routes/settings.routes.js';
 import newsletterRouter from '../routes/newsletter.routes.js';
 import categoryRouter from '../routes/category.routes.js';
 import notificationRouter from '../routes/notification.routes.js';
-import { initializeCategories } from '../controllers/category.controller.js';
+// import { initializeCategories } from '../controllers/category.controller.js';
 
 dotenv.config();
 
@@ -27,7 +27,7 @@ const server = http.createServer(app);
     console.log('Connected to MongoDB');
 
     // Initialize default categories
-    await initializeCategories();
+    // await initializeCategories();
 
     connectCloudinary();
     console.log('Cloudinary configured');

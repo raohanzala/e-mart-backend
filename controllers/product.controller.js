@@ -102,8 +102,8 @@ const addProduct = async (req, res) => {
       } else if (Array.isArray(variants)) {
         parsedVariants = variants;
       }
-      // Validate each variant (must have at least one of color, size, price, stock, sku)
-      parsedVariants = parsedVariants.filter(variant => variant && (variant.color || variant.size || variant.price || variant.sku));
+      // Validate each variant (must have at least one of color, size, price, stock)
+      parsedVariants = parsedVariants.filter(variant => variant && (variant.color || variant.size || variant.price));
     }
 
     // Save product details to the database
@@ -228,10 +228,10 @@ const editProduct = async (req, res) => {
       } else if (Array.isArray(variants)) {
         parsedVariants = variants;
       }
-      // Validate each variant (must have at least one of color, size, price, stock, sku)
-      if (parsedVariants) {
-        parsedVariants = parsedVariants.filter(variant => variant && (variant.color || variant.size || variant.price || variant.sku));
-      }
+              // Validate each variant (must have at least one of color, size, price, stock)
+        if (parsedVariants) {
+          parsedVariants = parsedVariants.filter(variant => variant && (variant.color || variant.size || variant.price));
+        }
     }
 
     const updatedData = {
@@ -303,6 +303,7 @@ const singleProduct = async (req, res) => {
       brand: product.brand,
       images: product.images,
       variants: product.variants || [],
+      specifications: product.specifications || [],
       stock: product.stock,
       category: product.category,
       subCategory: product.subCategory,
@@ -482,6 +483,7 @@ const products = async (req, res) => {
         images: 1,
         category: 1,
         availability: 1,
+        variants: 1,
         createdAt: 1,
       },
     });
@@ -625,9 +627,9 @@ const getFeaturedProducts = async (req, res) => {
         published: true,
         isFeatured: true // Only get featured products
       })
-      .sort({ date: -1 }) // Sort by date in descending order (newest first)
+      .sort({ createdAt: -1 }) // Sort by date in descending order (newest first)
       .limit(limit)
-      .select('name description price slug images category gender bestSeller'); // Select only needed fields
+      .select('title description price discount slug images category subCategory brand variants stock availability'); // Select only needed fields
     
       console.log(featuredProducts)
 
@@ -646,11 +648,18 @@ const getFeaturedProducts = async (req, res) => {
 
 const getRelatedProducts = async (req, res) => {
   try {
-    const { productId } = req.params;
+    const { productSlug } = req.params;
     const limit = parseInt(req.query.limit) || 4; // Default to 4 related products
 
-    // First, get the current product to find its category and gender
-    const currentProduct = await productModel.findById(productId);
+    if (!productSlug) {
+      return res.status(400).json({
+        success: false,
+        message: "Product slug is required"
+      });
+    }
+
+    // First, get the current product to find its category
+    const currentProduct = await productModel.findOne({ slug: productSlug });
     
     if (!currentProduct) {
       return res.status(404).json({
@@ -659,17 +668,16 @@ const getRelatedProducts = async (req, res) => {
       });
     }
 
-    // Find related products based on the same category and gender
+    // Find related products based on the same category
     const relatedProducts = await productModel
       .find({
-        _id: { $ne: productId }, // Exclude the current product
+        slug: { $ne: productSlug }, // Exclude the current product
         category: currentProduct.category,
-        gender: currentProduct.gender,
         published: true // Only get published products
       })
-      .sort({ date: -1 }) // Sort by newest first
+      .sort({ createdAt: -1 }) // Sort by newest first
       .limit(limit)
-      .select('name description newPrice oldPrice images category gender bestSeller isAffiliate profit')
+      .select('title description slug price discount images category subCategory brand variants stock availability')
       .populate('category', 'name'); // Populate category name
 
     res.json({
@@ -687,15 +695,15 @@ const getRelatedProducts = async (req, res) => {
 
 const getBestSellers = async (req, res) => {
   try {
-    // Find 10 most recent best seller products
+    // Find 10 most recent featured products (since bestSeller field doesn't exist in current schema)
     const bestSellers = await productModel
       .find({ 
-        bestSeller: true,
+        isFeatured: true,
         published: true // Only get published products
       })
-      .sort({ date: -1 }) // Sort by newest first
+      .sort({ createdAt: -1 }) // Sort by newest first
       .limit(10) // Limit to 10 products
-      .select('name description newPrice oldPrice images category gender bestSeller isAffiliate profit')
+      .select('title description slug price discount images category subCategory brand variants stock availability')
       .populate('category', 'name');
 
     res.json({

@@ -29,7 +29,7 @@ const productSchema = new mongoose.Schema({
     size: { type: String },
     price: { type: Number },
     stock: { type: Number, default: 0 },
-    sku: { type: String, unique: true }
+    // sku: { type: String, unique: true }
   }],
 
   availability: { type: String, default: "In Stock" },

@@ -22,7 +22,7 @@ const orderSchema = new mongoose.Schema({
     image:    { type: String, required: true },
     price:    { type: Number, required: true },
     quantity: { type: Number, required: true },
-    sku:      { type: String, required: true }
+    slug:     { type: String, required: true }
   }],
   // Order total
   amount: { type: Number, required: true },

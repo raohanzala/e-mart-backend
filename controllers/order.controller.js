@@ -23,15 +23,6 @@ const guestPlaceOrder = async (req, res) => {
       });
     }
 
-    // Validate phone number (basic validation)
-    // const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-    // if (!phoneRegex.test(String(formData.phone).replace(/\s/g, ''))) {
-    //   return res.json({ 
-    //     success: false, 
-    //     message: "Please provide a valid phone number" 
-    //   });
-    // }
-
     // Validate address
     if (!formData.address || !formData.city || !formData.state || !formData.zipCode || !formData.country) {
       return res.json({ 
@@ -75,7 +66,7 @@ const guestPlaceOrder = async (req, res) => {
         image: item.image,
         price: item.price,
         quantity: item.quantity,
-        sku: item.sku
+        slug: item.slug
       })),
       amount: total
     };

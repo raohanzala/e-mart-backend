@@ -274,36 +274,22 @@ const deleteCategory = async (req, res) => {
   }
 };
 
-
-const getProductsByCategorySlug = async (req, res) => {
+const getFeaturedCategories = async (req, res) => {
   try {
-    const { slug } = req.params;
-
-    console.log(slug, 'SLUG PATAM')
-
-    // Find the category by slug
-    const category = await categoryModel.findOne({ slug });
-
-    console.log(category)
-
-    if (!category) {
-      return res.status(404).json({
-        success: false,
-        message: "Category not found",
-      });
-    }
-
-    // Get all products with this category's ObjectId
-    const products = await productModel.find({ category: category._id }).lean();
+    const featuredCategories = await categoryModel
+      .find({ 
+        isFeatured: true, 
+        isActive: true 
+      })
+      .select("_id name slug description image isFeatured isActive")
+      .lean();
 
     res.json({
       success: true,
-      category: category.name,
-      totalProducts: products.length,
-      products,
+      categories: featuredCategories
     });
   } catch (error) {
-    console.error("Error in getProductsByCategorySlug:", error);
+    console.error("Error in getFeaturedCategories:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
@@ -533,5 +519,5 @@ export {
   editCategory,
   getAllCategories,
   // initializeCategories,
-  getProductsByCategorySlug
+  getFeaturedCategories
 };

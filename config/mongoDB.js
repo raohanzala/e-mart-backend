@@ -27,14 +27,10 @@ const connectDB = async () => {
       w: 'majority'
     }
 
-    await mongoose.connect(
-      // 'mongodb+srv://hanzalar502:Hanzala%4012345@cluster0.itbzgxy.mongodb.net/e-mart?retryWrites=true&w=majority',
-      // connectionOptions
-      'mongodb://localhost:27017'
-
-    )
-
+    await mongoose.connect(process.env.MONGO_URI, connectionOptions)
+    
   } catch (error) {
+    console.log('Connected to MongoDB', process.env.MONGO_URI)
     console.error('❌ Failed to connect to MongoDB:', error.message)
     throw error
   }

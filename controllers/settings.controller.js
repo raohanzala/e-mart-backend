@@ -1,14 +1,71 @@
 import settingsModel from '../models/settings.model.js';
 
+const initializeDefaultSettings = async () => {
+  const defaultSettings = {
+    siteName: "Realtime Wrist",
+    siteDescription: "Your Premium Watch Destination",
+    contactEmail: "contact@realtimewrist.com",
+    contactPhone: "+91 1234567890",
+    address: "123 Watch Street, Mumbai, India",
+    socialMedia: {
+      facebook: "https://facebook.com/realtimewrist",
+      instagram: "https://instagram.com/realtimewrist",
+      youtube: "https://youtube.com/realtimewrist",
+      whatsapp: "https://wa.me/919826000000",
+      linkedin: "https://linkedin.com/company/realtimewrist"
+    },
+    termsConditions : 'Policy',
+    currency: "INR",
+    currencySymbol: "₹",
+    taxRate: 18,
+    shippingCost: 0,
+    freeShippingThreshold: 5000,
+    seoSettings: {
+      metaTitle: "Realtime Wrist - Premium Watches Collection",
+      metaDescription: "Discover our exclusive collection of premium watches at Realtime Wrist",
+      metaKeywords: "watches, luxury watches, premium watches, wrist watches",
+      googleAnalyticsId: "UA-XXXXXXXXX-X"
+    },
+    maintenanceMode: false,
+    maintenanceMessage: "Site is under maintenance. Please check back later.",
+    notificationSettings: {
+      orderConfirmation: true,
+      orderStatusUpdate: true,
+      newProductAlert: true,
+      promotionalEmails: true
+    },
+    returnPolicy: {
+      returnPeriod: 7,
+      returnConditions: "Items must be unused and in original packaging"
+    },
+    banners: [
+      {
+        title: "Summer Collection",
+        image: "banner1.jpg",
+        link: "/summer-collection",
+        active: true,
+        position: "top"
+      }
+    ],
+    themeSettings: {
+      primaryColor: "#000000",
+      secondaryColor: "#ffffff",
+      fontFamily: "Arial"
+    }
+  };
+
+  return await settingsModel.create(defaultSettings);
+};
+
 // Get all settings
 const getSettings = async (req, res) => {
   try {
     let settings = await settingsModel.findOne();
     
     // If no settings exist, create default settings
-    // if (!settings) {
-    //   settings = await initializeDefaultSettings();
-    // }
+    if (!settings) {
+      settings = await initializeDefaultSettings();
+    }
 
     // Only auto-disable sale timer if it's not explicitly set to true
     if (settings.saleTimer?.isActive && settings.saleTimer?.endDate) {

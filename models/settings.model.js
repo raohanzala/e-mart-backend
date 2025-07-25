@@ -84,30 +84,6 @@ const settingsSchema = new mongoose.Schema({
     default: 5000
   },
 
-  // Affiliate Settings
-  affiliateSettings: {
-    minBonusCommission: {
-      type: Number,
-      default: 5
-    },
-    maxBonusCommission: {
-      type: Number,
-      default: 10
-    },
-    defaultCommission: {
-      type: Number,
-      default: 5
-    },
-    minFirstWithdrawal: {
-      type: Number,
-      default: 4000
-    },
-    minSubsequentWithdrawal: {
-      type: Number,
-      default: 2000
-    }
-  },
-
   // SEO Settings
   seoSettings: {
     metaTitle: String,
@@ -125,20 +101,7 @@ const settingsSchema = new mongoose.Schema({
     type: String,
     default: "Site is under maintenance. Please check back later."
   },
- 
-  // Payment Gateway Settings
-  paymentSettings: {
-    razorpayKeyId: String,
-    razorpayKeySecret: String,
-    enableCOD: {
-      type: Boolean,
-      default: true
-    },
-    enableOnlinePayment: {
-      type: Boolean,
-      default: true
-    }
-  },
+
 
   // Notification Settings
   notificationSettings: {
@@ -158,6 +121,11 @@ const settingsSchema = new mongoose.Schema({
       type: Boolean,
       default: true
     }
+  },
+
+  termsConditions : {
+    type : String,
+    default : 'NNot policy'
   },
 
   // Return Policy

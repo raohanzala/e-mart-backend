@@ -11,7 +11,8 @@ import {
   updatePublishStatus,
   getRelatedProducts,
   getBestSellers,
-  getFeaturedProducts
+  getFeaturedProducts,
+  getProductsByCategorySlug
 } from "../controllers/product.controller.js";
 import upload from "../middleware/multer.js";
 import adminAuth from "../middleware/adminAuth.js";
@@ -40,5 +41,7 @@ productRouter.get("/single/:productSlug", singleProduct);
 productRouter.get("/featured", getFeaturedProducts);
 productRouter.get("/best-sellers", getBestSellers);
 productRouter.get("/related/:productSlug", getRelatedProducts);
+productRouter.get('/category/:slug', getProductsByCategorySlug)
+
 
 export default productRouter;

@@ -26,9 +26,6 @@ const server = http.createServer(app);
     await connectDB();
     console.log('Connected to MongoDB');
 
-    // Initialize default categories
-    // await initializeCategories();
-
     connectCloudinary();
     console.log('Cloudinary configured');
   } catch (error) {

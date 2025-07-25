@@ -5,6 +5,7 @@ import sharp from 'sharp';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import mongoose, { Types } from 'mongoose';
+import categoryModel from '../models/category.model.js';
 
 const addProduct = async (req, res) => {
   try {
@@ -265,7 +266,6 @@ const editProduct = async (req, res) => {
   }
 };
 
-
 const removeProduct = async (req, res)=> {
    try {
       await productModel.findByIdAndDelete(req.body.id)
@@ -321,8 +321,6 @@ const singleProduct = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
-
 
 const searchProducts = async (req, res) => {
   const { query, category } = req.query;
@@ -517,7 +515,6 @@ const products = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 
 const updateProductStatus = async (req, res)=> {
   try {
@@ -719,6 +716,91 @@ const getBestSellers = async (req, res) => {
   }
 };
 
+const getProductsByCategorySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 10;
+    const sortBy = req.query.sortBy || "createdAt";
+
+    if (page <= 0 || pageSize <= 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Page and pageSize must be positive numbers" 
+      });
+    }
+
+    console.log(slug, 'SLUG PARAM')
+
+    // Find the category by slug
+    const category = await categoryModel.findOne({ slug });
+
+    console.log(category)
+
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: "Category not found",
+      });
+    }
+
+    let sortCriteria = {};
+    switch (sortBy) {
+      case "price-low-high":
+        sortCriteria = { price: 1 };
+        break;
+      case "price-high-low":
+        sortCriteria = { price: -1 };
+        break;
+      case "name-asc":
+        sortCriteria = { title: 1 };
+        break;
+      case "name-desc":
+        sortCriteria = { title: -1 };
+        break;
+      case "createdAt-asc":
+        sortCriteria = { createdAt: 1 };
+        break;
+      case "createdAt-desc":
+      default:
+        sortCriteria = { createdAt: -1 };
+        break;
+    }
+
+    // Get total count of products in this category
+    const totalProducts = await productModel.countDocuments({ 
+      category: category._id,
+      published: true 
+    });
+
+    // Get paginated products with this category's ObjectId
+    const products = await productModel
+      .find({ 
+        category: category._id,
+        published: true 
+      })
+      .select('_id title description slug price discount images variants stock availability createdAt')
+      .sort(sortCriteria)
+      .skip((page - 1) * pageSize)
+      .limit(pageSize)
+      .lean();
+
+    res.json({
+      success: true,
+      category: category.name,
+      categorySlug: category.slug,
+      currentPage: page,
+      pageSize: pageSize,
+      totalProducts: totalProducts,
+      totalPages: Math.ceil(totalProducts / pageSize),
+      products,
+    });
+  } catch (error) {
+    console.error("Error in getProductsByCategorySlug:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
 export {
   addProduct,
   removeProduct,
@@ -731,5 +813,6 @@ export {
   updatePublishStatus,
   getFeaturedProducts,
   getRelatedProducts,
-  getBestSellers
+  getBestSellers,
+  getProductsByCategorySlug
 };

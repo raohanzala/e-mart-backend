@@ -10,7 +10,7 @@ const guestPlaceOrder = async (req, res) => {
     if (!formData || !formData.firstName || !formData.lastName || !formData.email || !formData.phone) {
       return res.json({ 
         success: false, 
-        message: "Guest user information (firstName, lastName, email, phone) is required" 
+        message: "Complete information is required" 
       });
     }
 
@@ -72,6 +72,18 @@ const guestPlaceOrder = async (req, res) => {
     };
 
     const newOrder = await orderModel.create(orderData);
+
+    // Create notification for new order
+    await createNotification('NEW_ORDER','New Guest Order Received', `New order received from ${formData.firstName} ${formData.lastName}`, {
+      orderId: newOrder._id,
+      orderAmount: total,
+      orderItems: cartItems.map(item => ({
+        title: item.title,
+        price: item.price,
+        quantity: item.quantity,
+        slug: item.slug
+      }))
+    });
 
     res.json({ 
       success: true, 

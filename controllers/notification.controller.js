@@ -9,6 +9,7 @@ const createNotification = async (type, title, message, data = {}) => {
       message,
       data
     });
+    console.log(notification, 'NOTIFICATION CREATED')
     await notification.save();
     return notification;
   } catch (error) {

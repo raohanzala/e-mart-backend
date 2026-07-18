@@ -1,5 +1,5 @@
 import express from 'express'
-import { addCategory, deleteCategory, editCategory, getCategories, getAllCategories, getFeaturedCategories } from '../controllers/category.controller.js';
+import { addCategory, deleteCategory, editCategory, getCategories, getAllCategories, getFeaturedCategories, getCategoryById } from '../controllers/category.controller.js';
 import adminAuth from '../middleware/adminAuth.js';
 import upload from '../middleware/multer.js';
 
@@ -10,6 +10,8 @@ categoryRouter.get("/all", getAllCategories);
 
 // Get featured categories (isFeatured: true and isActive: true)
 categoryRouter.get("/featured", getFeaturedCategories);
+
+categoryRouter.get("/category/:id", getCategoryById);
 
 
 // Get all categories (with pagination, sorting, search)

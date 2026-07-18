@@ -11,7 +11,10 @@ import settingsRouter from '../routes/settings.routes.js';
 import newsletterRouter from '../routes/newsletter.routes.js';
 import categoryRouter from '../routes/category.routes.js';
 import notificationRouter from '../routes/notification.routes.js';
+import authRouter from '../routes/auth.routes.js';
+import { seedAdmin } from '../controllers/auth.controller.js';
 // import { initializeCategories } from '../controllers/category.controller.js';
+
 
 dotenv.config();
 
@@ -26,6 +29,8 @@ const server = http.createServer(app);
     await connectDB();
     console.log('Connected to MongoDB');
 
+    await seedAdmin();
+
     connectCloudinary();
     console.log('Cloudinary configured');
   } catch (error) {
@@ -33,6 +38,7 @@ const server = http.createServer(app);
     process.exit(1); // Exit on critical failure
   }
 })();
+
 
 // Middleware
 const corsOptions = {
@@ -49,6 +55,7 @@ app.options('*', cors(corsOptions));
 app.use(express.json());
 
 // Routes
+app.use('/api/auth', authRouter);
 app.use('/api/products', productRouter);
 app.use('/api/cart', cartRouter);
 app.use('/api/order', orderRouter);

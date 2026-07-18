@@ -281,18 +281,30 @@ const singleProduct = async (req, res) => {
     const { productSlug } = req.params;
 
     if (!productSlug) {
-      return res.status(400).json({ success: false, message: "Product slug is required" });
+      return res.status(400).json({
+        success: false,
+        message: "Product ID or slug is required",
+      });
     }
 
-    const product = await productModel.findOne({ slug: productSlug })
-      .populate('category')
+    // If identifier is a valid MongoDB ObjectId, search by _id.
+    // Otherwise, search by slug.
+    const query = mongoose.Types.ObjectId.isValid(productSlug)
+      ? { _id: productSlug }
+      : { slug: productSlug };
+
+    const product = await productModel
+      .findOne(query)
+      .populate("category")
       .lean();
 
     if (!product) {
-      return res.status(404).json({ success: false, message: "Product not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
     }
 
-    // Format the response to match the desired structure
     const formattedProduct = {
       _id: product._id,
       title: product.title,
@@ -312,13 +324,20 @@ const singleProduct = async (req, res) => {
       published: product.published,
       attributes: product.attributes,
       createdAt: product.createdAt,
-      updatedAt: product.updatedAt
+      updatedAt: product.updatedAt,
     };
 
-    res.json({ success: true, product: formattedProduct });
+    return res.status(200).json({
+      success: true,
+      product: formattedProduct,
+    });
   } catch (error) {
-    console.error('Error fetching single product:', error);
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Error fetching single product:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 

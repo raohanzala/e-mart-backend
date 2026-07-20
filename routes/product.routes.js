@@ -28,7 +28,7 @@ const uploadArray = [
 
 // Admin routes
 productRouter.post("/add", adminAuth, upload.fields(uploadArray), addProduct);
-productRouter.post("/remove", adminAuth, removeProduct);
+productRouter.delete("/remove/:id", adminAuth, removeProduct);
 productRouter.post("/productstatus", adminAuth, updateProductStatus);
 productRouter.get("/product-details", adminAuth, productDetails);
 productRouter.put("/edit/:productId", upload.fields(uploadArray), editProduct);
